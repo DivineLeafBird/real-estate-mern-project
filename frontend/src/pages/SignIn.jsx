@@ -1,10 +1,11 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { PiEyeClosedLight } from "react-icons/pi";
 import { FaApple, FaRegEye } from "react-icons/fa";
 import Header from "../components/Header";
 import Google from "../assets/icons/google.png";
 import Facebook from "../assets/icons/facebook.png";
+import Alerts from "../components/Alerts";
 
 const SignIn = () => {
   const [passwordVisible, setPasswordVisible] = useState(false);
@@ -13,6 +14,16 @@ const SignIn = () => {
     setPasswordVisible(!passwordVisible);
   };
 
+  const location = useLocation();
+  const [heading, setHeading] = useState(null);
+  const [message, setMessage] = useState(null);
+
+  useEffect(() => {
+    if (location.state) {
+      if (location.state.heading) setHeading(location.state.heading);
+      if (location.state.message) setMessage(location.state.message);
+    }
+  }, [location.state]);
   return (
     <>
       <div>
@@ -20,6 +31,15 @@ const SignIn = () => {
       </div>
       <section className="flex items-center justify-center mt-20 lg:mt-2 px-4">
         <div className="bg-white px-8 py-6 rounded-lg shadow-lg">
+          {message && (
+            <Alerts
+              msgHeading={heading}
+              text={message}
+              type="success"
+              onClose={() => setMessage(null)}
+            />
+          )}
+
           <h1 className="text-2xl font-bold mb-4 text-center text-darkblue">
             Welcome back
           </h1>
@@ -57,7 +77,7 @@ const SignIn = () => {
               Sign In
             </button>
           </form>
-          <p className="mt-4 text-center">
+          <p className="mt-4 lg:hidden text-center">
             Don't have an account?{" "}
             <Link to="/signup" className="text-blue">
               Sign up
@@ -71,7 +91,7 @@ const SignIn = () => {
           <div>
             <button
               type="submit"
-              className="w-full disabled:hidden flex items-center justify-between border text-base mt-5 py-2 px-8 gap-4 rounded"
+              className="w-full disabled:hidden flex items-center justify-around border text-base mt-5 py-2 px-4 gap-4 rounded"
             >
               <div>
                 <img
@@ -84,7 +104,7 @@ const SignIn = () => {
             </button>
             <button
               type="submit"
-              className="w-full disabled:hidden flex items-center justify-between border text-base mt-5 py-2 px-8 gap-4 rounded"
+              className="w-full disabled:hidden flex items-center justify-around  border text-base mt-5 py-2 px-4 gap-4 rounded"
             >
               <div>
                 <img
@@ -97,7 +117,7 @@ const SignIn = () => {
             </button>
             <button
               type="submit"
-              className="w-full disabled:hidden flex items-center justify-between border text-base mt-5 py-2 px-8 gap-4 rounded"
+              className="w-full disabled:hidden flex items-center justify-around  border text-base mt-5 py-2 px-4  gap-4 rounded"
             >
               <FaApple className="w-6 h-6" />
               Continue with Apple

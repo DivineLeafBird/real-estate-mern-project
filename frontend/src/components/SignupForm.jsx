@@ -3,9 +3,10 @@ import { FaApple, FaRegEye } from "react-icons/fa6";
 import { IoClose } from "react-icons/io5";
 import { PiEyeClosedLight } from "react-icons/pi";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Google from "../assets/icons/google.png";
 import Facebook from "../assets/icons/facebook.png";
+import { CgSpinner } from "react-icons/cg";
 
 const SignupForm = ({ show, onClose }) => {
   const [passwordVisible, setPasswordVisible] = useState(false);
@@ -17,6 +18,8 @@ const SignupForm = ({ show, onClose }) => {
     setConfirmPasswordVisible(!confirmPasswordVisible);
   };
 
+  const navigate = useNavigate();
+
   // State for form data and errors
   const [formData, setFormData] = useState({
     firstname: "",
@@ -25,6 +28,7 @@ const SignupForm = ({ show, onClose }) => {
     password: "",
     confirmPassword: "",
   });
+  // client side validation
   const [errors, setErrors] = useState({
     firstname: "",
     lastname: "",
@@ -94,13 +98,40 @@ const SignupForm = ({ show, onClose }) => {
   }, [formData, errors]);
 
   // Handle form submission
-  const handleSubmit = (e) => {
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (isFormValid) {
-      // Handle form submission
-      console.log("Form submitted", formData);
-    } else {
-      console.log("Form has errors");
+    try {
+      setLoading(true);
+      // Create a copy of formData without the confirmPassword field
+      const { confirmPassword, ...dataToSend } = formData;
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(dataToSend),
+      });
+      const data = await res.json();
+      console.log(data);
+      if (data.success === false) {
+        setLoading(false);
+        setError(data.message);
+        return;
+      }
+      setLoading(false);
+      setError(null);
+      onClose();
+      navigate("/signin", {
+        state: {
+          heading: "Sign Up Successful",
+          message: "Account created successfully! You can now login.",
+        },
+      });
+    } catch (error) {
+      setLoading(false);
+      setError(error.message);
     }
   };
 
@@ -248,10 +279,17 @@ const SignupForm = ({ show, onClose }) => {
           </div>
           <button
             type="submit"
-            disabled={!isFormValid}
-            className="bg-blue disabled:bg-softgray disabled:opacity-50  text-white font-medium py-2 px-4 rounded w-full"
+            disabled={!isFormValid || loading}
+            className="bg-blue disabled:bg-softgray disabled:bg-opacity-50 disabled:text-blue text-white font-medium py-2 px-4 rounded w-full flex items-center justify-center"
           >
-            Sign Up
+            {loading ? (
+              <>
+                <CgSpinner className="animate-spin h-6 w-6 mr-2 text-blue" />
+                Loading...
+              </>
+            ) : (
+              "Sign Up"
+            )}
           </button>
         </form>
         <p className="mt-4 text-center font-normal">
@@ -260,6 +298,9 @@ const SignupForm = ({ show, onClose }) => {
             Sign in
           </Link>
         </p>
+
+        {error && <p className="text-red-500 text-center mt-4">{error}</p>}
+
         <div className="mt-10 grid grid-cols-3 items-center  text-softgray">
           <hr className="border-softgray" />
           <p className="text-center">OR</p>
