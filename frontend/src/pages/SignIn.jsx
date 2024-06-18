@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { PiEyeClosedLight } from "react-icons/pi";
 import { FaApple, FaRegEye } from "react-icons/fa";
 import Header from "../components/Header";
 import Google from "../assets/icons/google.png";
 import Facebook from "../assets/icons/facebook.png";
 import Alerts from "../components/Alerts";
+import { CgSpinner } from "react-icons/cg";
 
 const SignIn = () => {
   const [passwordVisible, setPasswordVisible] = useState(false);
@@ -13,7 +14,8 @@ const SignIn = () => {
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
   };
-
+  const navigate = useNavigate();
+  // signup redirect state
   const location = useLocation();
   const [heading, setHeading] = useState(null);
   const [message, setMessage] = useState(null);
@@ -24,6 +26,62 @@ const SignIn = () => {
       if (location.state.message) setMessage(location.state.message);
     }
   }, [location.state]);
+
+  // State for form data
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });  
+  // Update form state
+  const [isFormValid, setIsFormValid] = useState(false);
+// Handle input changes
+const handleChange = (e) => {
+  const { name, value } = e.target;
+  // Update form data
+  setFormData({
+    ...formData,
+    [name]: value,
+  });
+
+};
+  
+   // Check if the form is valid
+   useEffect(() => {
+    const formIsValid =
+      Object.values(formData).every((value) => value !== "");
+    setIsFormValid(formIsValid);
+  }, [formData]);
+
+   // Handle form submission
+   const [error, setError] = useState(null);
+   const [loading, setLoading] = useState(false);
+   const handleSubmit = async (e) => {
+     e.preventDefault();
+     try {
+       setLoading(true);
+       const res = await fetch("/api/auth/signin", {
+         method: "POST",
+         headers: {
+           "Content-Type": "application/json",
+         },
+         body: JSON.stringify(formData),
+       });
+       const data = await res.json();
+       console.log(data);
+       if (data.success === false) {
+         setLoading(false);
+         setError(data.message);
+         return;
+       }
+       setLoading(false);
+       setError(null);
+       navigate('/');
+     } catch (error) {
+       setLoading(false);
+       setError(error.message);
+     }
+   };
+ 
   return (
     <>
       <div>
@@ -43,12 +101,17 @@ const SignIn = () => {
           <h1 className="text-2xl font-bold mb-4 text-center text-darkblue">
             Welcome back
           </h1>
-          <form>
+          <div>
+          {error && <p className="text-red-500 bg-red-100 p-2 text-center my-4 rounded">{error}</p>}
+          </div>
+          <form onSubmit={handleSubmit}>
             <div className="mb-4">
               <input
                 type="email"
                 name="email"
                 placeholder="Email address"
+                value={formData.email}
+                  onChange={handleChange}
                 className="w-full px-3 py-2 border focus:outline-none rounded"
               />
             </div>
@@ -57,6 +120,8 @@ const SignIn = () => {
                 type={passwordVisible ? "text" : "password"}
                 name="password"
                 placeholder="Password"
+                value={formData.password}
+                onChange={handleChange}
                 className="w-full px-3 py-2 border focus:outline-none rounded"
               />
               <span
@@ -72,13 +137,20 @@ const SignIn = () => {
             </div>
             <button
               type="submit"
-              className="w-full bg-blue text-base text-white py-2 rounded-2xl"
+              disabled={!isFormValid || loading}
+              className="w-full flex items-center justify-center bg-blue text-base text-white font-medium py-2 rounded-2xl disabled:bg-softgray disabled:bg-opacity-50 disabled:text-blue disabled:cursor-not-allowed disabled:text-opacity-50"
             >
-              Sign In
+               {loading ? (
+                  <>
+                    <CgSpinner className="animate-spin h-6 w-6 mr-2 text-blue" />
+                  </>
+                ) : (
+                  "Sign In"
+                )}
             </button>
           </form>
           <p className="mt-4 lg:hidden text-center">
-            Don't have an account?{" "}
+            Don&apos;t have an account?{" "}
             <Link to="/signup" className="text-blue">
               Sign up
             </Link>

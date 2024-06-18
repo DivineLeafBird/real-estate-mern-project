@@ -280,7 +280,7 @@ const SignupForm = ({ show, onClose }) => {
           <button
             type="submit"
             disabled={!isFormValid || loading}
-            className="bg-blue disabled:bg-softgray disabled:bg-opacity-50 disabled:text-blue text-white font-medium py-2 px-4 rounded w-full flex items-center justify-center"
+            className="bg-blue disabled:bg-softgray disabled:bg-opacity-50 disabled:text-blue disabled:cursor-not-allowed disabled:text-opacity-50 text-white font-medium py-2 px-4 rounded w-full flex items-center justify-center"
           >
             {loading ? (
               <>
