@@ -7,6 +7,9 @@ import Google from "../assets/icons/google.png";
 import Facebook from "../assets/icons/facebook.png";
 import Alerts from "../components/Alerts";
 import { CgSpinner } from "react-icons/cg";
+import { useDispatch, useSelector } from "react-redux";
+import { signInStart, signInSuccess, signInFailure } from "../redux/user/userSlice.js";
+
 
 const SignIn = () => {
   const [passwordVisible, setPasswordVisible] = useState(false);
@@ -14,7 +17,11 @@ const SignIn = () => {
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
   };
+
+  const {loading, error} = useSelector((state) => state.user);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
   // signup redirect state
   const location = useLocation();
   const [heading, setHeading] = useState(null);
@@ -53,12 +60,10 @@ const handleChange = (e) => {
   }, [formData]);
 
    // Handle form submission
-   const [error, setError] = useState(null);
-   const [loading, setLoading] = useState(false);
    const handleSubmit = async (e) => {
      e.preventDefault();
      try {
-       setLoading(true);
+       dispatch(signInStart());
        const res = await fetch("/api/auth/signin", {
          method: "POST",
          headers: {
@@ -69,16 +74,13 @@ const handleChange = (e) => {
        const data = await res.json();
        console.log(data);
        if (data.success === false) {
-         setLoading(false);
-         setError(data.message);
+          dispatch(signInFailure(data.message));
          return;
        }
-       setLoading(false);
-       setError(null);
+        dispatch(signInSuccess(data));
        navigate('/');
      } catch (error) {
-       setLoading(false);
-       setError(error.message);
+       dispatch(signInFailure(error.message));
      }
    };
  
